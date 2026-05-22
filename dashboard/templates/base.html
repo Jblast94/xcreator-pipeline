@@ -165,6 +165,12 @@
             <a href="/create" class="{% if request.url.path.startswith('/create') %}active{% endif %}">
                 <span>⚡</span> <span>Create</span>
             </a>
+            <a href="/trends" class="{% if request.url.path.startswith('/trends') %}active{% endif %}">
+                <span>📊</span> <span>Trends</span>
+            </a>
+            <a href="/agents" class="{% if request.url.path.startswith('/agents') %}active{% endif %}">
+                <span>🎭</span> <span>Agents</span>
+            </a>
             <a href="/distribute" class="{% if request.url.path.startswith('/distribute') %}active{% endif %}">
                 <span>🚀</span> <span>Distribute</span>
             </a>

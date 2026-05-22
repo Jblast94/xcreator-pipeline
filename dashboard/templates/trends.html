@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}Trends — Pipeline{% endblock %}
+{% block content %}
+<h2>📊 Trend Scan <span class="text-muted" style="font-weight:400;font-size:16px;">— Grok-powered trend detection</span></h2>
+
+<div class="status-bar">
+    <div class="status-item">
+        <span class="status-dot green"></span>
+        Grok: ❝ The trend scanner ❞
+    </div>
+    <div class="status-item text-muted">
+        Paste prompts → get trends → schedule
+    </div>
+</div>
+
+<div class="grid" style="grid-template-columns: 2fr 1fr;">
+    <!-- Prompt Library -->
+    <div class="card">
+        <h3>📋 Grok Prompt Library</h3>
+        <p class="text-muted" style="font-size:13px;margin-bottom:12px;">Paste these into Grok Chat or Grok X Search. Copy, paste, done.</p>
+
+        <div data-tabs>
+            <div class="tabs">
+                <div class="tab active" data-tab="tab-scan">🔍 Scan</div>
+                <div class="tab" data-tab="tab-content">✍️ Content</div>
+                <div class="tab" data-tab="tab-schedule">⏰ Schedule</div>
+            </div>
+
+            <!-- Scan Tab -->
+            <div class="tab-content active" id="tab-scan">
+                <div style="padding:12px;background:var(--bg);border-radius:8px;margin-bottom:12px;">
+                    <div style="font-weight:600;margin-bottom:4px;">🟢 Quick Trend Scan</div>
+                    <pre style="font-size:12px;cursor:pointer;" onclick="navigator.clipboard.writeText(this.textContent)">
+List 5 trending niches on X right now. For each: name, description, tone, audience, 3 hook formulas, 5 hashtags, monetization angle, trending velocity.
+
+Return as JSON array.</pre>
+                </div>
+                <div style="padding:12px;background:var(--bg);border-radius:8px;margin-bottom:12px;">
+                    <div style="font-weight:600;margin-bottom:4px;">🔵 Deep Niche Analysis</div>
+                    <pre style="font-size:12px;" onclick="navigator.clipboard.writeText(this.textContent)">
+Search X for top creators and conversations in the niche "{niche}".
+Analyze: what hooks work, what tone, top 5 creators, monetization strategies.
+Return as structured data.</pre>
+                </div>
+                <div style="padding:12px;background:var(--bg);border-radius:8px;">
+                    <div style="font-weight:600;margin-bottom:4px;">🟣 Daily Trend Report</div>
+                    <pre style="font-size:12px;" onclick="navigator.clipboard.writeText(this.textContent)">
+Search X for what's trending RIGHT NOW across: AI, crypto, fitness, adult content, finance, tech.
+For each: find TOP 3 trending posts. Explain WHY each is trending.
+Recommend: which niche has highest engagement POTENTIAL right NOW and what angle to use.</pre>
+                </div>
+            </div>
+
+            <!-- Content Tab -->
+            <div class="tab-content" id="tab-content">
+                <div style="padding:12px;background:var(--bg);border-radius:8px;margin-bottom:12px;">
+                    <div style="font-weight:600;margin-bottom:4px;">✍️ Content from Trend</div>
+                    <pre style="font-size:12px;" onclick="navigator.clipboard.writeText(this.textContent)">
+Based on the trending topic "{topic}" in the {niche} niche:
+1. Write a hook tweet (≤280 chars)
+2. Write a 5-tweet thread
+3. Generate 10 hashtags
+4. Describe an image prompt
+
+Return as: hook, thread (array), hashtags (array), image_prompt</pre>
+                </div>
+                <div style="padding:12px;background:var(--bg);border-radius:8px;">
+                    <div style="font-weight:600;margin-bottom:4px;">🎭 Character from Niche</div>
+                    <pre style="font-size:12px;" onclick="navigator.clipboard.writeText(this.textContent)">
+Create an ElizaOS character.json for a {niche} influencer.
+Tone: {tone}. Audience: {audience}. 
+Generate: name, bio (5 lines), lore, postExamples (5), style, topics.
+Make it sound human, not bot.</pre>
+                </div>
+            </div>
+
+            <!-- Schedule Tab -->
+            <div class="tab-content" id="tab-schedule">
+                <div style="padding:12px;background:var(--bg);border-radius:8px;">
+                    <div style="font-weight:600;margin-bottom:4px;">⏰ Schedule a Daily Trend Post</div>
+                    <p class="text-muted" style="font-size:13px;">Set up a Hermes cron job that scans trends and posts automatically.</p>
+                    <pre style="font-size:12px;">
+# From Hermes CLI:
+hermes cron create \
+  --name "daily-trend-post" \
+  --schedule "0 9 * * *" \
+  --prompt "Search X for top trending topic in AI/crypto/fitness.
+Generate: hook tweet, 5-tweet thread, image prompt.
+Use image-turbo MCP for image, xurl to post." \
+  --skills xurl,social-orchestrator
+
+# Quick schedule (every 6 hours):
+hermes cron create \
+  --name "niche-scout" \
+  --schedule "every 6h" \
+  --prompt "Scan X for trending topics in {niche}. Post the best one."</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card">
+        <h3>⚡ Quick Actions</h3>
+        <div style="margin-bottom:12px;">
+            <button class="btn btn-primary" style="width:100%;margin-bottom:8px;justify-content:center;"
+                    onclick="navigator.clipboard.writeText(`List 5 trending niches on X right now. Return as JSON array.`);this.textContent='✅ Copied!'">
+                📋 Copy Trend Scan Prompt
+            </button>
+            <div class="form-group">
+                <label>Niche for Content</label>
+                <input type="text" id="niche-input" placeholder="e.g. AI agents, fitness, crypto">
+            </div>
+            <button class="btn btn-primary" style="width:100%;margin-bottom:8px;justify-content:center;"
+                    hx-post="/create/caption-only"
+                    hx-include="#niche-input"
+                    hx-vals='{"cap-platform":"twitter","cap-tone":"engaging","cap-topic":"trending in "}'
+                    hx-target="#niche-result"
+                    hx-swap="innerHTML"
+                    hx-encoding="multipart/form-data">
+                ✍️ Generate Post from Niche
+            </button>
+            <div id="niche-result"></div>
+        </div>
+        <div style="padding:12px;background:var(--bg);border-radius:8px;">
+            <div style="font-size:13px;font-weight:600;">📦 Existing Characters</div>
+            <a href="/agents" class="btn btn-sm" style="margin-top:6px;">View Generated Characters →</a>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Characters -->
+<div class="card mt-2">
+    <h3>🎭 Generated Characters</h3>
+    <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
+        {% for char in recent_chars %}
+        <div style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border);">
+            <div style="font-weight:600;">{{ char.name }}</div>
+            <div class="text-muted" style="font-size:12px;">{{ char.file }}</div>
+            {% if char.topics %}
+            <div style="font-size:11px;margin-top:4px;">
+                {% for t in char.topics[:3] %}
+                <span class="badge badge-info">{{ t[:15] }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

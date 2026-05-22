@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Agents — Pipeline{% endblock %}
+{% block content %}
+<h2>🎭 Agents <span class="text-muted" style="font-weight:400;font-size:16px;">— ElizaOS character files</span></h2>
+
+<div class="status-bar">
+    <div class="status-item">
+        <span class="status-dot green"></span>
+        Characters: {{ characters|length }} generated
+    </div>
+    <div class="status-item text-muted">
+        📁 agents/characters/
+    </div>
+</div>
+
+<!-- Generate New Character -->
+<div class="card">
+    <h3>🎭 Generate New Character</h3>
+    <p class="text-muted" style="font-size:13px;margin-bottom:12px;">Generate from Grok niche data or paste your own.</p>
+    
+    <div class="form-group">
+        <label>Niche</label>
+        <input type="text" id="gen-niche" placeholder="e.g. AI agents, biohacking, crypto trading">
+    </div>
+    <div class="grid" style="grid-template-columns: 1fr 1fr;">
+        <div class="form-group">
+            <label>Tone</label>
+            <select id="gen-tone">
+                <option value="educational">Educational</option>
+                <option value="provocative">Provocative</option>
+                <option value="entertaining">Entertaining</option>
+                <option value="controversial">Controversial</option>
+                <option value="teasing">Teasing</option>
+                <option value="inspirational">Inspirational</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Platform</label>
+            <select id="gen-platform">
+                <option value="twitter">X/Twitter</option>
+                <option value="telegram">Telegram</option>
+                <option value="discord">Discord</option>
+            </select>
+        </div>
+    </div>
+    <button class="btn btn-primary"
+            hx-post="/create/caption-only"
+            hx-include="#gen-niche, #gen-tone"
+            hx-vals='{"cap-platform":"twitter","cap-topic":"ElizaOS character for "}'
+            hx-target="#gen-result"
+            hx-swap="innerHTML"
+            hx-encoding="multipart/form-data">
+        🎭 Generate
+    </button>
+    <div id="gen-result" class="mt-2"></div>
+</div>
+
+<!-- Character List -->
+{% if characters %}
+<div class="card">
+    <h3>📁 Character Files ({{ characters|length }})</h3>
+    {% for char in characters %}
+    <div style="padding:12px;background:var(--bg);border-radius:8px;margin:8px 0;border:1px solid var(--border);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+                <strong>{{ char.name }}</strong>
+                <span class="text-muted" style="font-size:12px;margin-left:8px;">{{ char.file }}</span>
+                {% for c in char.clients %}
+                <span class="badge badge-info">{{ c }}</span>
+                {% endfor %}
+            </div>
+            <div class="text-muted" style="font-size:12px;">{{ char.modified }}</div>
+        </div>
+        {% if char.bio %}
+        <div class="text-muted" style="font-size:12px;margin-top:4px;">
+            {% for b in char.bio %}
+            <div>• {{ b[:80] }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% if char.style %}
+        <div style="font-size:11px;margin-top:4px;">
+            {% for s in char.style %}
+            <span class="badge badge-info" style="background:var(--bg3);color:var(--accent);">{{ s }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <div style="margin-top:6px;">
+            <button class="btn btn-sm"
+                    onclick="navigator.clipboard.writeText(`{{ char.name }}`);this.textContent='✅ Copied name'">
+                📋 Copy Name
+            </button>
+            <a href="/agents/{{ char.file }}" class="btn btn-sm" target="_blank">👁 View JSON</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card">
+    <div class="text-center" style="padding:40px;">
+        <div style="font-size:40px;margin-bottom:12px;">🎭</div>
+        <p class="text-muted">No characters yet. Run a trend scan or create one above.</p>
+        <a href="/trends" class="btn btn-primary">📊 Scan Trends</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

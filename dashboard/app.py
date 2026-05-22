@@ -1130,6 +1130,128 @@ async def refresh_health():
     return HTMLResponse(html)
 
 
+# ── Trends & Agents ──────────────────────────────────────────────────────────
+
+CHARACTERS_DIR = Path(__file__).parent.parent / "agents" / "characters"
+AGENTS_MODULE = Path(__file__).parent.parent / "agents" / "scanner"
+
+
+@app.get("/trends", response_class=HTMLResponse)
+async def trends_page(request: Request):
+    """Trend scanning UI."""
+    # Get recent characters
+    recent_chars = []
+    if CHARACTERS_DIR.exists():
+        for f in sorted(CHARACTERS_DIR.glob("*.json"), key=lambda f: f.stat().st_mtime, reverse=True)[:6]:
+            try:
+                data = json.loads(f.read_text())
+                recent_chars.append({
+                    "name": data.get("name", f.stem),
+                    "file": f.name,
+                    "topics": data.get("topics", [])[:3],
+                })
+            except Exception:
+                pass
+    return templates.TemplateResponse(request, "trends.html", {"request": request, "recent_chars": recent_chars})
+
+
+@app.post("/trends/scan")
+async def trends_scan(
+    count: str = Form("5"),
+):
+    """Run trend scan and generate characters."""
+    # Import dynamically (relative path magic)
+    import sys
+    sys.path.insert(0, str(AGENTS_MODULE.parent))
+    
+    from agents.scanner.trend_scanner import scan_and_generate_characters, deep_scan_and_create
+    from agents.scanner.trend_scanner import TrendScanner
+    
+    scanner = TrendScanner()
+    try:
+        n = int(count)
+    except ValueError:
+        n = 5
+    
+    niches = scanner.scan_trending_niches(count=n)
+    
+    html = f'<div class="card" style="margin-top:16px;border-color:var(--green);">'
+    html += f'<h3 class="text-green">📊 Trend Scan Complete</h3>'
+    html += f'<p class="text-muted">Detected {len(niches)} trending niches</p>'
+    
+    for niche in niches:
+        vel = {"rising": "🟢", "peaked": "🟡", "stable": "🔵", "declining": "🔴"}.get(niche.trending_velocity, "⚪")
+        html += f"""
+        <div style="padding:12px;background:var(--bg);border-radius:8px;margin:8px 0;border:1px solid var(--border);">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div><strong>{vel} {niche.name}</strong> <span class="text-muted" style="font-size:12px;">{niche.tone} · {niche.audience[:40]}</span></div>
+                <div><span class="badge badge-info">{niche.trending_velocity}</span></div>
+            </div>
+            <div class="text-muted" style="font-size:13px;margin-top:4px;">{niche.description}</div>
+            <div style="font-size:12px;margin-top:6px;">
+                <span class="text-accent">Pillars:</span> {', '.join(niche.content_pillars[:3])}
+                <span style="margin-left:12px;"><span class="text-green">Monetization:</span> {niche.monetization_angle[:60]}</span>
+            </div>
+            <div style="margin-top:6px;">
+                <button class="btn btn-sm btn-primary"
+                        hx-post="/trends/generate-character"
+                        hx-vals='{{"niche":"{niche.name}","tone":"{niche.tone}"}}'
+                        hx-target="#char-result"
+                        hx-swap="innerHTML">
+                    🎭 Generate Character
+                </button>
+            </div>
+        </div>"""
+    
+    html += '</div>'
+    html += '<div id="char-result"></div>'
+    return HTMLResponse(html)
+
+
+@app.post("/trends/deep-scan")
+async def trends_deep_scan(
+    niche_name: str = Form(...),
+):
+    """Deep scan a specific niche and generate character."""
+    import sys
+    sys.path.insert(0, str(AGENTS_MODULE.parent))
+    from agents.scanner.trend_scanner import deep_scan_and_create
+    
+    result = deep_scan_and_create(niche_name)
+    
+    if "ERROR" in result:
+        return HTMLResponse(f'<div class="card" style="border-color:var(--red);"><h3 class="text-red">❌ {result}</h3></div>')
+    
+    return HTMLResponse(f'<div class="card" style="border-color:var(--green);"><h3 class="text-green">✅ Character Created</h3><p class="text-muted">{result}</p></div>')
+
+
+@app.get("/agents", response_class=HTMLResponse)
+async def agents_page(request: Request):
+    """Agent management UI."""
+    characters = []
+    if CHARACTERS_DIR.exists():
+        for f in sorted(CHARACTERS_DIR.glob("*.json"), key=lambda f: f.stat().st_mtime, reverse=True):
+            try:
+                data = json.loads(f.read_text())
+                characters.append({
+                    "name": data.get("name", f.stem),
+                    "file": f.name,
+                    "clients": data.get("clients", []),
+                    "topics": data.get("topics", [])[:5],
+                    "style": data.get("style", {}).get("all", [])[:3],
+                    "bio": data.get("bio", [])[:2],
+                    "size": f.stat().st_size,
+                    "modified": datetime.fromtimestamp(f.stat().st_mtime).strftime("%Y-%m-%d %H:%M"),
+                })
+            except Exception:
+                pass
+    
+    return templates.TemplateResponse(
+        request, "agents.html",
+        {"request": request, "characters": characters},
+    )
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
