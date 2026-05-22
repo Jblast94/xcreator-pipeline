@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% block title %}Create — Content Pipeline{% endblock %}
+{% block content %}
+<h2>⚡ Create <span class="text-muted" style="font-weight:400;font-size:16px;">— topic → image + caption in one click</span></h2>
+
+<div class="status-bar">
+    <div class="status-item">
+        <span class="status-dot green"></span>
+        Image: Z-Image-Turbo (free HF Space)
+    </div>
+    <div class="status-item">
+        <span class="status-dot green"></span>
+        Captions: Grok Chat (text-only)
+    </div>
+    <div class="status-item text-muted">
+        Output: /mnt/storage/comfy/output/
+    </div>
+</div>
+
+<div data-tabs>
+    <div class="tabs">
+        <div class="tab active" data-tab="tab-full">🚀 Full Create</div>
+        <div class="tab" data-tab="tab-imgonly">🖼 Image Only</div>
+        <div class="tab" data-tab="tab-textonly">📝 Caption Only</div>
+    </div>
+
+    <!-- Full Create: Topic → Everything -->
+    <div class="tab-content active" id="tab-full">
+        <div class="card">
+            <h3>🚀 One-Click Content Factory</h3>
+            <p class="text-muted" style="font-size:13px;margin-bottom:12px;">Enter a topic → get image + hook + caption + hashtags + thread (optional). Uses free HF Space for images, Grok text for copy.</p>
+            <div class="form-group">
+                <label>Topic / Idea</label>
+                <textarea id="full-topic" rows="2" placeholder="e.g. Why AI will replace 90% of marketing jobs by 2027..." style="resize:vertical;"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Image Prompt <span class="text-muted">(override — leave blank to use topic)</span></label>
+                <input type="text" id="full-img-prompt" placeholder="e.g. futuristic robot typing on laptop, neon lighting, cyberpunk">
+            </div>
+            <div class="grid" style="grid-template-columns: 1fr 1fr 1fr;">
+                <div class="form-group">
+                    <label>Platform</label>
+                    <select id="full-platform">
+                        <option value="twitter">🐦 Twitter/X</option>
+                        <option value="instagram">📸 Instagram</option>
+                        <option value="tiktok">🎵 TikTok</option>
+                        <option value="onlyfans">🔥 OnlyFans</option>
+                        <option value="telegram">📱 Telegram</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tone</label>
+                    <select id="full-tone">
+                        <option value="engaging">Engaging</option>
+                        <option value="provocative">Provocative</option>
+                        <option value="educational">Educational</option>
+                        <option value="funny">Funny/Meme</option>
+                        <option value="motivational">Motivational</option>
+                        <option value="controversial">Controversial</option>
+                        <option value="teasing">Teasing</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Size</label>
+                    <select id="full-size">
+                        <option value="1024x1024">1:1 Square</option>
+                        <option value="1024x1792">9:16 Portrait (Reels/TikTok)</option>
+                        <option value="1792x1024">16:9 Landscape (YouTube/X)</option>
+                    </select>
+                </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                <label style="margin-bottom:0;display:flex;align-items:center;gap:6px;cursor:pointer;">
+                    <input type="checkbox" id="full-thread"> Generate Twitter thread (5 tweets)
+                </label>
+            </div>
+            <button class="btn btn-primary" style="padding:12px 24px;font-size:16px;"
+                    hx-post="/create/generate"
+                    hx-include="#full-topic, #full-img-prompt, #full-platform, #full-tone, #full-thread, #full-size"
+                    hx-target="#create-results"
+                    hx-swap="innerHTML"
+                    hx-indicator="#full-spinner">
+                🚀 Generate Everything
+            </button>
+            <span id="full-spinner" class="spinner htmx-indicator" style="margin-left:12px;"></span>
+        </div>
+    </div>
+
+    <!-- Image Only -->
+    <div class="tab-content" id="tab-imgonly">
+        <div class="card">
+            <h3>🖼 Quick Image</h3>
+            <p class="text-muted" style="font-size:13px;margin-bottom:12px;">Generate just an image — fastest path. Free via HF Space.</p>
+            <div class="form-group">
+                <label>Prompt</label>
+                <textarea id="img-prompt" rows="3" placeholder="Describe the image..." style="resize:vertical;">A photorealistic sunset over a tropical beach, vibrant colors, 8K</textarea>
+            </div>
+            <div class="grid" style="grid-template-columns: 1fr 1fr;">
+                <div class="form-group">
+                    <label>Size</label>
+                    <select id="img-size">
+                        <option value="1024x1024">1024×1024 (Square)</option>
+                        <option value="1024x1792">1024×1792 (Portrait)</option>
+                        <option value="1792x1024">1792×1024 (Landscape)</option>
+                        <option value="768x1344">768×1344 (Mobile)</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn btn-primary"
+                    hx-post="/create/image-only"
+                    hx-include="#img-prompt, #img-size"
+                    hx-target="#create-results"
+                    hx-swap="innerHTML"
+                    hx-indicator="#imgonly-spinner">
+                🖼 Generate Image
+            </button>
+            <span id="imgonly-spinner" class="spinner htmx-indicator" style="margin-left:8px;"></span>
+        </div>
+    </div>
+
+    <!-- Caption Only -->
+    <div class="tab-content" id="tab-textonly">
+        <div class="card">
+            <h3>📝 Quick Caption</h3>
+            <p class="text-muted" style="font-size:13px;margin-bottom:12px;">Generate captions, hooks, and hashtags. Text-only via Grok chat (minimal cost).</p>
+            <div class="form-group">
+                <label>Topic</label>
+                <textarea id="cap-topic" rows="2" placeholder="What's the post about?"></textarea>
+            </div>
+            <div class="grid" style="grid-template-columns: 1fr 1fr;">
+                <div class="form-group">
+                    <label>Platform</label>
+                    <select id="cap-platform">
+                        <option value="twitter">🐦 Twitter/X</option>
+                        <option value="instagram">📸 Instagram</option>
+                        <option value="tiktok">🎵 TikTok</option>
+                        <option value="onlyfans">🔥 OnlyFans</option>
+                        <option value="telegram">📱 Telegram</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tone</label>
+                    <select id="cap-tone">
+                        <option value="engaging">Engaging</option>
+                        <option value="provocative">Provocative</option>
+                        <option value="educational">Educational</option>
+                        <option value="funny">Funny/Meme</option>
+                        <option value="motivational">Motivational</option>
+                        <option value="teasing">Teasing</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn btn-primary"
+                    hx-post="/create/caption-only"
+                    hx-include="#cap-topic, #cap-platform, #cap-tone"
+                    hx-target="#create-results"
+                    hx-swap="innerHTML"
+                    hx-indicator="#caponly-spinner">
+                📝 Generate Caption
+            </button>
+            <span id="caponly-spinner" class="spinner htmx-indicator" style="margin-left:8px;"></span>
+        </div>
+    </div>
+</div>
+
+<!-- Results -->
+<div id="create-results"></div>
+
+<!-- Recent Outputs -->
+{% if recent_outputs %}
+<div class="card mt-2">
+    <h3>📁 Recent Outputs</h3>
+    <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
+        {% for f in recent_outputs %}
+        <div style="padding:8px;background:var(--bg);border-radius:8px;border:1px solid var(--border);">
+            <div style="font-size:13px;font-weight:600;">{{ f.name }}</div>
+            <div class="text-muted" style="font-size:11px;">{{ f.size }} bytes</div>
+            <div class="text-muted" style="font-size:11px;">{{ f.modified[:19] }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Hook Formulas Reference -->
+<div class="card mt-2">
+    <h3>💡 Hook Formulas</h3>
+    <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));">
+        <div style="padding:8px;background:var(--bg);border-radius:8px;">
+            <div style="font-size:13px;font-weight:600;color:var(--accent);">Curiosity</div>
+            <div class="text-muted" style="font-size:12px;">"I was wrong about [X]."<br>"The real reason [Y] isn't what you think."</div>
+        </div>
+        <div style="padding:8px;background:var(--bg);border-radius:8px;">
+            <div style="font-size:13px;font-weight:600;color:var(--green);">Contrarian</div>
+            <div class="text-muted" style="font-size:12px;">"Unpopular opinion: [bold claim]"<br>"[Common advice] is wrong. Here's why:"</div>
+        </div>
+        <div style="padding:8px;background:var(--bg);border-radius:8px;">
+            <div style="font-size:13px;font-weight:600;color:var(--orange);">Value</div>
+            <div class="text-muted" style="font-size:12px;">"How to [outcome] (without [pain])"<br>"[N] things that [result]:"</div>
+        </div>
+        <div style="padding:8px;background:var(--bg);border-radius:8px;">
+            <div style="font-size:13px;font-weight:600;color:var(--purple);">Social Proof</div>
+            <div class="text-muted" style="font-size:12px;">"We got [result] in [time]. Here's how:"<br>"[N] people asked me about [topic]."</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

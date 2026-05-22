@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>⚙️ ComfyUI Workflows <span class="text-muted" style="font-weight:400;font-size:16px;">— deploy on RunPod or Vast.ai</span></h2>
+
+<div class="status-bar">
+    <div class="status-item">
+        <span class="status-dot orange"></span>
+        ComfyUI: Not Deployed
+    </div>
+    <div class="status-item text-muted">
+        Deploy on RunPod or Vast.ai GPU
+    </div>
+</div>
+
+<!-- Workflow Templates -->
+<h3>📦 Available Workflow Templates</h3>
+<div class="grid">
+    {% for wf in workflows %}
+    <div class="card" style="padding:16px;display:flex;flex-direction:column;">
+        <div class="flex flex-wrap gap-2" style="margin-bottom:8px;">
+            <span class="badge badge-info">{{ wf.type }}</span>
+            <span class="badge badge-healthy">{{ wf.model }}</span>
+        </div>
+        <h3 style="font-size:15px;margin-bottom:4px;">{{ wf.name }}</h3>
+        <p class="meta" style="font-size:13px;flex:1;">{{ wf.description }}</p>
+        <div class="flex gap-2 mt-2" style="font-size:12px;">
+            <span>🖼 {{ wf.resolution }}</span>
+            <span>🎯 {{ wf.steps }} steps</span>
+            <span>💾 {{ wf.vram }}</span>
+        </div>
+        <div class="flex gap-2 mt-2">
+            <button class="btn btn-sm btn-primary" 
+                    hx-post="/comfyui/deploy"
+                    hx-vals='{"template": "{{ wf.id }}"}'
+                    hx-target="#deploy-result"
+                    hx-swap="innerHTML">
+                🚀 Deploy
+            </button>
+            <button class="btn btn-sm"
+                    hx-get="/comfyui/workflow/{{ wf.id }}"
+                    hx-target="#workflow-detail"
+                    hx-swap="innerHTML">
+                View Workflow
+            </button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div id="deploy-result"></div>
+<div id="workflow-detail"></div>
+
+<!-- RunPod Quick Deploy -->
+<div class="card mt-2">
+    <h3>🖥 Quick Deploy — RunPod ComfyUI</h3>
+    <div class="form-group">
+        <label>RunPod API Key</label>
+        <input type="password" id="runpod-key" placeholder="rpa_...">
+    </div>
+    <div class="grid" style="grid-template-columns: 1fr 1fr;">
+        <div class="form-group">
+            <label>Template</label>
+            <select id="runpod-template">
+                <option value="runpod/worker-comfyui:latest-flux1-dev">ComfyUI + FLUX.1-dev</option>
+                <option value="runpod/worker-comfyui:latest-sdxl">ComfyUI + SDXL</option>
+                <option value="runpod/worker-comfyui:latest-sd3">ComfyUI + SD3.5</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>GPU Type</label>
+            <select id="runpod-gpu">
+                <option value="NVIDIA-RTX-4090">RTX 4090 (24GB) — $0.49/hr</option>
+                <option value="NVIDIA-RTX-6000-Ada">RTX 6000 Ada (48GB) — $0.79/hr</option>
+                <option value="NVIDIA-A6000">A6000 (48GB) — $0.99/hr</option>
+                <option value="NVIDIA-A100-80GB">A100 (80GB) — $2.19/hr</option>
+            </select>
+        </div>
+    </div>
+    <button class="btn btn-primary" 
+            hx-post="/comfyui/deploy/runpod"
+            hx-include="#runpod-key, #runpod-template, #runpod-gpu"
+            hx-target="#deploy-result"
+            hx-swap="innerHTML">
+        🚀 Deploy to RunPod
+    </button>
+</div>
+
+<!-- Vast.ai Quick Deploy -->
+<div class="card">
+    <h3>🖥 Quick Deploy — Vast.ai ComfyUI</h3>
+    <div class="form-group">
+        <label>Vast.ai API Key</label>
+        <input type="password" id="vast-key" placeholder="...">
+    </div>
+    <button class="btn btn-primary"
+            hx-post="/comfyui/deploy/vast"
+            hx-include="#vast-key"
+            hx-target="#deploy-result"
+            hx-swap="innerHTML">
+        🚀 Search Vast.ai Instances
+    </button>
+</div>
+
+<!-- ComfyUI Workflow Reference -->
+<div class="card mt-2">
+    <h3>📋 ComfyUI Architecture Reference</h3>
+    <pre style="font-size:12px;line-height:1.6;">
+Standard Image Gen Workflow (FLUX/SDXL):
+  Load Checkpoint → CLIP Text Encode (prompt) → KSampler → VAE Decode → Save Image
+                                                        ↑
+                                              Load Image (for img2img)
+
+Standard Video Gen Workflow (Wan2.1):
+  Load Diffusion Model → CLIP Text Encode → Wan Video Sampler → VAE Decode → Save Video
+                          ↑                        ↑
+                     Load Image (I2V)         Frame Count
+
+FLUX Klein High-Res Workflow:
+  Load FLUX Klein → T2I Generation (1024×1024) → Klein Upscale → 4K/8K Output
+
+LoRA Stacking Pattern:
+  Load Checkpoint → Load LoRA (unlock @ 0.5) → Load LoRA (style @ 1.0) → ... → KSampler
+
+Recommended Settings:
+  Sampler: DPM++ 2M Karras / Euler ancestral
+  CFG: 5-7 (FLUX), 7-10 (SDXL), 3.5-5 (photorealism)
+  Steps: 28-35 (FLUX), 25-30 (SDXL), 4-8 (Z-Image Turbo)
+    </pre>
+</div>
+{% endblock %}

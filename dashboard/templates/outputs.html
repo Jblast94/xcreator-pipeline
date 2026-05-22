@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>🖼 Outputs</h2>
+
+{% if outputs %}
+<div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
+    {% for out in outputs %}
+    <div class="card" style="padding:12px;">
+        <div class="flex flex-wrap gap-2" style="margin-bottom:6px;">
+            <span class="badge badge-info">{{ out.platform }}</span>
+            <span class="text-muted" style="font-size:11px;">{{ out.time }}</span>
+        </div>
+        <div style="font-size:13px;margin-bottom:4px;">
+            {{ out.caption[:80] }}{{ '...' if out.caption|length > 80 }}
+        </div>
+        <div class="text-muted" style="font-size:11px;">
+            {{ out.filename }} · {{ out.size }}
+        </div>
+        <div class="flex gap-2 mt-2">
+            <a href="/outputs/{{ out.filename }}" class="btn btn-sm" hx-boost="false">📥 Download</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card text-center text-muted" style="padding:40px;">
+    <div style="font-size:48px;margin-bottom:12px;">🖼</div>
+    <div>No outputs yet. Run a workflow to generate content.</div>
+</div>
+{% endif %}
+{% endblock %}

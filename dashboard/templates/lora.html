@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>🎨 LoRA Directory <span class="text-muted" style="font-weight:400;font-size:16px;">— curated from CivitAI, HF, community</span></h2>
+
+<div class="search-bar">
+    <input type="text" placeholder="Search LoRAs...">
+    <select style="width:auto;flex-shrink:0;">
+        <option>All Base Models</option>
+        <option>FLUX.1/2</option>
+        <option>SDXL</option>
+        <option>SD3.5</option>
+        <option>Pony</option>
+        <option>Z-Image</option>
+    </select>
+    <select style="width:auto;flex-shrink:0;">
+        <option>All Categories</option>
+        <option>NSFW Unlock</option>
+        <option>Anatomy</option>
+        <option>Style</option>
+        <option>Detail Enhancer</option>
+        <option>Character</option>
+    </select>
+</div>
+
+<h3>🔥 Top NSFW LoRAs (from CivitAI)</h3>
+<div class="grid">
+    {% for lora in loras %}
+    <div class="card" style="padding:16px;">
+        <div class="flex flex-wrap gap-2" style="margin-bottom:8px;">
+            <span class="badge badge-healthy">{{ lora.base_model }}</span>
+            <span class="badge badge-info">{{ lora.category }}</span>
+        </div>
+        <h3 style="font-size:14px;margin-bottom:4px;">
+            <a href="{{ lora.url }}" target="_blank" style="color:var(--accent);text-decoration:none;">
+                {{ lora.name }}
+            </a>
+        </h3>
+        <div class="meta" style="font-size:12px;">{{ lora.creator }}</div>
+        <div class="flex gap-2 mt-2" style="font-size:12px;">
+            <span>⭐ {{ lora.rating }}</span>
+            <span>❤️ {{ lora.likes }}</span>
+            <span>⬇️ {{ lora.downloads }}</span>
+        </div>
+        {% if lora.trigger_words %}
+        <div class="mt-2">
+            <code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:11px;">{{ lora.trigger_words }}</code>
+        </div>
+        {% endif %}
+        {% if lora.stack_order %}
+        <div class="mt-2 text-muted" style="font-size:11px;">
+            Stack: {{ lora.stack_order }}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+<h3 style="margin-top:24px;">🧠 Top Checkpoints (from CivitAI)</h3>
+<div class="grid">
+    {% for ckpt in checkpoints %}
+    <div class="card" style="padding:16px;">
+        <div class="flex flex-wrap gap-2" style="margin-bottom:8px;">
+            <span class="badge badge-healthy">{{ ckpt.base_model }}</span>
+            {% if ckpt.generations > 1000000 %}
+            <span class="badge badge-healthy">🔥 {{ '{:.1f}M'.format(ckpt.generations/1000000) }} gens</span>
+            {% endif %}
+        </div>
+        <h3 style="font-size:14px;margin-bottom:4px;">
+            <a href="{{ ckpt.url }}" target="_blank" style="color:var(--accent);text-decoration:none;">
+                {{ ckpt.name }}
+            </a>
+        </h3>
+        <div class="meta" style="font-size:12px;">{{ ckpt.creator }}</div>
+        <div class="flex gap-2 mt-2" style="font-size:12px;">
+            <span>⭐ {{ ckpt.rating }}</span>
+            <span>❤️ {{ ckpt.favorites }}</span>
+            <span>🖼 {{ '{:.0f}K'.format(ckpt.images/1000) if ckpt.images > 1000 else ckpt.images }} images</span>
+        </div>
+        <div class="mt-2" style="font-size:12px;">
+            <span class="text-green">Best for:</span> {{ ckpt.best_for }}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="card mt-2">
+    <h3>📋 Quick Reference: LoRA Stacking for NSFW</h3>
+    <pre style="font-size:12px;">
+Base Unlock:   aidmaNSFWunlock @ 0.5-0.8       (model 674027)
+Style Layer:   Nude Style for FLUX V2 @ 1.0    (no trigger needed)
+Detail:        Detail Enhancer FLUX V1 @ 0.5-1.0
+Anatomy:       [pick one per layer]
+  • Perfect Hands FLUX @ 0.5-0.7
+  • aidmaBreasts FLUX @ 0.7-0.9
+  • aidmaPussy FLUX @ 0.7-0.9
+  • aidmaassFLUX @ 0.6-0.9
+
+Stack order:  Base Unlock → Style → Detail → Anatomy
+Sampler:      DPM++ 2M Karras (restricted to 28 steps for Z-Image)
+CFG Scale:    5-7 for balanced, 3.5-5 for photorealism
+Resolution:   1024x1024 base, upscale via Klein workflow for higher
+    </pre>
+</div>
+{% endblock %}

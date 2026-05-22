@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block title %}Distribute — Content Pipeline{% endblock %}
+{% block content %}
+<h2>🚀 Distribute <span class="text-muted" style="font-weight:400;font-size:16px;">— publish across platforms</span></h2>
+
+<div class="status-bar">
+    <div class="status-item">
+        <span class="status-dot green"></span>
+        Telegram: ✅ Connected (Hermes native)
+    </div>
+    <div class="status-item">
+        <span class="status-dot orange"></span>
+        X/Twitter: ⚠️ Needs xurl setup
+    </div>
+    <div class="status-item">
+        <span class="status-dot orange"></span>
+        Instagram: 🔜 Planned
+    </div>
+    <div class="status-item">
+        <span class="status-dot orange"></span>
+        TikTok: 🔜 Planned
+    </div>
+</div>
+
+<div data-tabs>
+    <div class="tabs">
+        <div class="tab active" data-tab="tab-telegram">📱 Telegram</div>
+        <div class="tab" data-tab="tab-twitter">🐦 Twitter/X</div>
+        <div class="tab" data-tab="tab-cross">🌍 Cross-Platform</div>
+    </div>
+
+    <!-- Telegram -->
+    <div class="tab-content active" id="tab-telegram">
+        <div class="card">
+            <h3>📱 Telegram Broadcast</h3>
+            <p class="text-muted" style="font-size:13px;margin-bottom:12px;">Send content directly via Hermes. Supports markdown, images, and video.</p>
+            <div class="form-group">
+                <label>Target</label>
+                <select id="tg-target">
+                    <option value="telegram">Home Channel</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Message</label>
+                <textarea id="tg-message" rows="5" placeholder="Your message... supports **bold**, *italic*, ```code```" style="resize:vertical;"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Image URL <span class="text-muted">(optional — paste URL from Create tab)</span></label>
+                <input type="text" id="tg-image" placeholder="https://...">
+            </div>
+            <div class="text-muted" style="font-size:12px;margin-bottom:12px;">
+                ⚡ Use <code>send_message</code> tool from Hermes CLI or schedule with cron.
+            </div>
+        </div>
+    </div>
+
+    <!-- Twitter/X -->
+    <div class="tab-content" id="tab-twitter">
+        <div class="card">
+            <h3>🐦 Twitter/X Post</h3>
+            <p class="text-muted" style="font-size:13px;margin-bottom:12px;">
+                Post via <code>xurl</code> CLI. First-time setup needed:
+            </p>
+            <div style="padding:12px;background:var(--bg);border-radius:8px;margin-bottom:12px;font-size:13px;">
+                <div style="font-weight:600;color:var(--accent);margin-bottom:8px;">Setup (run on your machine):</div>
+                <pre style="font-size:12px;margin:0;">
+# Install xurl
+curl -fsSL https://raw.githubusercontent.com/xdevplatform/xurl/main/install.sh | bash
+
+# Create app at https://developer.x.com/en/portal/dashboard
+# Then authenticate:
+xurl auth apps add my-app --client-id ID --client-id SECRET
+xurl auth oauth2 --app my-app YOUR_HANDLE
+xurl auth default my-app
+
+# Verify:
+xurl whoami</pre>
+            </div>
+            <div class="form-group">
+                <label>Tweet Text</label>
+                <textarea id="tw-text" rows="3" placeholder="What's happening?" maxlength="280" style="resize:vertical;" oninput="document.getElementById('tw-count').textContent = this.value.length + '/280'"></textarea>
+                <div class="text-muted" style="font-size:12px;"><span id="tw-count">0/280</span></div>
+            </div>
+            <div class="form-group">
+                <label>Image Path <span class="text-muted">(optional — local path or URL)</span></label>
+                <input type="text" id="tw-image" placeholder="/mnt/storage/comfy/output/pipeline_xxx.png">
+            </div>
+            <div class="text-muted" style="font-size:12px;">
+                After setup, post from terminal: <code>xurl post "text" --media-id ID</code>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cross-Platform -->
+    <div class="tab-content" id="tab-cross">
+        <div class="card">
+            <h3>🌍 Cross-Platform Broadcast</h3>
+            <p class="text-muted" style="font-size:13px;margin-bottom:12px;">Adapt one piece of content for all platforms and distribute.</p>
+            <div class="form-group">
+                <label>Source Topic / Content</label>
+                <textarea id="cross-topic" rows="2" placeholder="The topic or content to adapt and distribute..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Image URL <span class="text-muted">(shared across platforms)</span></label>
+                <input type="text" id="cross-image" placeholder="https://...">
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+                <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+                    <input type="checkbox" id="cross-twitter" checked> Twitter
+                </label>
+                <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+                    <input type="checkbox" id="cross-telegram" checked> Telegram
+                </label>
+                <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+                    <input type="checkbox" id="cross-instagram"> Instagram
+                </label>
+                <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+                    <input type="checkbox" id="cross-tiktok"> TikTok
+                </label>
+            </div>
+        </div>
+
+        <!-- Scheduled Posting -->
+        <div class="card mt-2">
+            <h3>⏰ Schedule Posts</h3>
+            <p class="text-muted" style="font-size:13px;margin-bottom:12px;">Set up automated posting via Hermes cron jobs.</p>
+            <div style="padding:12px;background:var(--bg);border-radius:8px;font-size:13px;">
+                <pre style="font-size:12px;margin:0;">
+# Schedule a daily morning post (via Hermes CLI):
+hermes cron create \
+  --name "morning-tweet" \
+  --schedule "0 9 * * *" \
+  --prompt "Generate and post a tweet about AI/tech trends. Use mcp_grok_chat for text, image-turbo MCP for image, xurl to post to X."
+
+# Schedule a weekly Instagram post:
+hermes cron create \
+  --name "weekly-insta" \
+  --schedule "0 10 * * 1" \
+  --prompt "Create an Instagram post about [topic]. Generate image via image-turbo, caption via grok chat."</pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Platform Strategy -->
+<div class="card mt-2">
+    <h3>📋 Platform Strategy</h3>
+    <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
+        <div style="padding:12px;background:var(--bg);border-radius:8px;">
+            <div style="font-size:14px;font-weight:600;">🐦 Twitter/X (2 accounts)</div>
+            <div class="text-muted" style="font-size:12px;margin-top:4px;">
+                Hooks + threads + image. 280 chars. Post 2-3x/day. Best: Tue/Wed/Fri mornings.
+            </div>
+        </div>
+        <div style="padding:12px;background:var(--bg);border-radius:8px;">
+            <div style="font-size:14px;font-weight:600;">📸 Instagram</div>
+            <div class="text-muted" style="font-size:12px;margin-top:4px;">
+                Visual-first. Reels > posts. 10-15 hashtags. Stories daily. Post 1x/day.
+            </div>
+        </div>
+        <div style="padding:12px;background:var(--bg);border-radius:8px;">
+            <div style="font-size:14px;font-weight:600;">🎵 TikTok</div>
+            <div class="text-muted" style="font-size:12px;margin-top:4px;">
+                Short-form video. Hook in 1st second. Trendy audio. Post 1-3x/day.
+            </div>
+        </div>
+        <div style="padding:12px;background:var(--bg);border-radius:8px;">
+            <div style="font-size:14px;font-weight:600;">📱 Telegram</div>
+            <div class="text-muted" style="font-size:12px;margin-top:4px;">
+                Full markdown. Long-form OK. Channels + DMs. Instant delivery.
+            </div>
+        </div>
+        <div style="padding:12px;background:var(--bg);border-radius:8px;">
+            <div style="font-size:14px;font-weight:600;">🔥 OnlyFans</div>
+            <div class="text-muted" style="font-size:12px;margin-top:4px;">
+                Teasing tone. Exclusive content. DM CTA. PPV content. Consistent posting.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

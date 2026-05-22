@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>🔗 Workflows <span class="text-muted" style="font-weight:400;font-size:16px;">— daggr + bridge execution</span></h2>
+
+<div class="status-bar">
+    <div class="status-item">
+        <span class="status-dot {{ 'green' if bridge_healthy else 'red' }}"></span>
+        Bridge: {{ 'Connected' if bridge_healthy else 'Offline' }}
+    </div>
+    <div class="status-item text-muted">
+        {{ workflow_name }} ({{ workflow_nodes }} nodes)
+    </div>
+</div>
+
+<div class="grid" style="grid-template-columns: 2fr 1fr;">
+    <div class="card">
+        <h3>▶ Run Workflow</h3>
+        <div class="form-group">
+            <label>Topic / Scenario</label>
+            <input type="text" id="wf-topic" placeholder="e.g., sunset beach, fantasy landscape..." value="test prompt">
+        </div>
+        <div class="form-group">
+            <label>Platform</label>
+            <select id="wf-platform">
+                <option>Twitter/X (NSFW)</option>
+                <option>TikTok (Viral NSFW)</option>
+                <option>Instagram (Alt)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>NSFW Mode</label>
+            <select id="wf-nsfw">
+                <option value="true">Enabled</option>
+                <option value="false">Disabled</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Intensity</label>
+            <select id="wf-intensity">
+                <option>Teasing</option>
+                <option selected>Explicit</option>
+                <option>Extreme</option>
+            </select>
+        </div>
+        <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary" 
+                    hx-post="/workflows/run"
+                    hx-include="#wf-topic, #wf-platform, #wf-nsfw, #wf-intensity"
+                    hx-target="#wf-result"
+                    hx-swap="innerHTML"
+                    hx-indicator="#wf-spinner">
+                🚀 Execute
+            </button>
+            <button class="btn"
+                    hx-post="/workflows/validate"
+                    hx-include="#wf-topic, #wf-platform, #wf-nsfw, #wf-intensity"
+                    hx-target="#wf-result"
+                    hx-swap="innerHTML">
+                🔍 Validate Only
+            </button>
+            <span id="wf-spinner" class="spinner htmx-indicator"></span>
+        </div>
+    </div>
+    <div class="card">
+        <h3>📊 Node Graph</h3>
+        {% if nodes %}
+        <div style="font-size:13px;">
+            {% for n in nodes %}
+            <div style="padding:6px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;">
+                <span>{{ n.name }}</span>
+                <span class="text-muted">{{ n.type }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-muted text-center">No workflow loaded</div>
+        {% endif %}
+    </div>
+</div>
+
+<div id="wf-result"></div>
+
+<!-- Recent Sessions -->
+<div class="card mt-2">
+    <h3>📋 Recent Sessions</h3>
+    {% if sessions %}
+    <table>
+        <thead>
+            <tr>
+                <th>Session</th>
+                <th>Status</th>
+                <th>Started</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sid, s in sessions.items()|sort(attribute='1.started_at', reverse=True) %}
+            <tr>
+                <td><code style="font-size:12px;">{{ sid[:16] }}...</code></td>
+                <td>
+                    <span class="badge badge-{{ 'healthy' if s.status == 'completed' else 'down' if s.status == 'failed' else 'degraded' }}">
+                        {{ s.status }}
+                    </span>
+                </td>
+                <td class="text-muted">{{ s.started_at[:19] if s.started_at else 'N/A' }}</td>
+                <td>
+                    <a href="/workflows/session/{{ sid }}" class="btn btn-sm" hx-get="/workflows/session/{{ sid }}" hx-target="#wf-result" hx-swap="innerHTML">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="text-muted text-center">No sessions yet</div>
+    {% endif %}
+</div>
+{% endblock %}

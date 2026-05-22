@@ -1,0 +1,32 @@
+{
+  "name": "eliza-bridge-service",
+  "version": "1.0.0",
+  "description": "Bridge service for Eliza Character Generator integration",
+  "main": "bridge-service.js",
+  "scripts": {
+    "start": "node bridge-service.js",
+    "dev": "nodemon bridge-service.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2",
+    "sqlite3": "^5.1.6",
+    "axios": "^1.5.0",
+    "node-cron": "^3.0.2",
+    "uuid": "^9.0.0",
+    "winston": "^3.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "eliza",
+    "bridge",
+    "ai",
+    "characters",
+    "integration"
+  ],
+  "author": "XCreator Pro Team",
+  "license": "MIT"
+}

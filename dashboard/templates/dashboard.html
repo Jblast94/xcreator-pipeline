@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>📊 Dashboard</h2>
+
+<div class="status-bar" id="status-bar">
+    <div class="status-item">
+        <span class="status-dot {{ 'green' if health.bridge == 'healthy' else 'red' }}"></span>
+        Bridge: {{ health.bridge }}
+    </div>
+    <div class="status-item">
+        <span class="status-dot {{ 'green' if health.spaces_healthy > 0 else 'red' }}"></span>
+        Spaces: {{ health.spaces_healthy }}/{{ health.spaces_total }} healthy
+    </div>
+    <div class="status-item">
+        <span class="status-dot {{ 'green' if health.serverless else 'orange' }}"></span>
+        API: {{ 'Available' if health.serverless else 'Limited' }}
+    </div>
+</div>
+
+<div class="grid">
+    <div class="card">
+        <h3>🧠 Models</h3>
+        <div class="meta">{{ model_stats.image }} image · {{ model_stats.video }} video · {{ model_stats.lora }} LoRA</div>
+        <div class="flex mt-2">
+            <span class="badge badge-info">Latest</span>
+            <span class="text-muted">{{ model_stats.latest_name }}</span>
+        </div>
+    </div>
+    <div class="card">
+        <h3>🎯 Workflows</h3>
+        <div class="meta">{{ workflow_stats.total }} daggr workflows · {{ workflow_stats.nodes }} total nodes</div>
+        <div class="flex mt-2">
+            <span class="badge {{ 'badge-healthy' if workflow_stats.healthy else 'badge-degraded' }}">
+                {{ '✓ Ready' if workflow_stats.healthy else '⚠ Needs setup' }}
+            </span>
+        </div>
+    </div>
+    <div class="card">
+        <h3>🖥 GPU</h3>
+        <div class="meta">{{ gpu_stats.available }} provisioned · {{ gpu_stats.active }} active</div>
+        <div class="flex mt-2">
+            <span class="text-muted">RunPod / Vast.ai</span>
+        </div>
+    </div>
+    <div class="card">
+        <h3>🖼 Outputs</h3>
+        <div class="meta">{{ output_stats.count }} files · {{ output_stats.size }}</div>
+        <div class="flex mt-2">
+            <span class="text-muted">Last: {{ output_stats.last }}</span>
+        </div>
+    </div>
+</div>
+
+<!-- HF Spaces Status -->
+<div class="card" style="margin-top: 8px;">
+    <h3>HF Space Health</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Space</th>
+                <th>Purpose</th>
+                <th>Status</th>
+                <th>API</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for name, info in spaces.items() %}
+            <tr>
+                <td><strong>{{ name }}</strong></td>
+                <td class="text-muted">{{ info.purpose }}</td>
+                <td>
+                    {% set hc = health.space_details.get(name, {}) %}
+                    {% set s = hc.get('status', 'unknown') %}
+                    <span class="badge badge-{{ 'healthy' if s == 'healthy' else 'down' if s in ('down','RUNTIME_ERROR','BUILD_ERROR') else 'degraded' }}">
+                        {{ s }}
+                    </span>
+                </td>
+                <td class="text-muted">{{ hc.get('latency', 0)|round(2) }}s</td>
+                <td>
+                    <a href="https://huggingface.co/spaces/{{ info.id }}" target="_blank" class="btn btn-sm">Open</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Quick Actions -->
+<div style="display:flex;gap:12px;margin-top:8px;">
+    <a href="/models" class="btn btn-primary">🔍 Discover Models</a>
+    <a href="/gpu" class="btn">🖥 Provision GPU</a>
+    <button class="btn" hx-get="/_refresh_health" hx-target="#status-bar" hx-swap="outerHTML">🔄 Refresh</button>
+</div>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>🧠 Models <span class="text-muted" style="font-weight:400;font-size:16px;">— latest image & video generation</span></h2>
+
+<div class="search-bar">
+    <input type="text" id="model-search" placeholder="Search models (e.g., FLUX, SD3.5, Wan, Hunyuan)..." value="{{ query or '' }}">
+    <select id="pipeline-filter" style="width:auto;flex-shrink:0;">
+        <option value="all" {% if pipeline == 'all' %}selected{% endif %}>All</option>
+        <option value="text-to-image" {% if pipeline == 'text-to-image' %}selected{% endif %}>Text-to-Image</option>
+        <option value="image-to-image" {% if pipeline == 'image-to-image' %}selected{% endif %}>Image-to-Image</option>
+        <option value="text-to-video" {% if pipeline == 'text-to-video' %}selected{% endif %}>Text-to-Video</option>
+        <option value="image-to-video" {% if pipeline == 'image-to-video' %}selected{% endif %}>Image-to-Video</option>
+        <option value="video-to-video" {% if pipeline == 'video-to-video' %}selected{% endif %}>Video-to-Video</option>
+    </select>
+    <button class="btn btn-primary" hx-get="/models/search?q={{ query or '' }}&pipeline={{ pipeline or 'all' }}" hx-target="#model-results" hx-trigger="click">Search</button>
+</div>
+
+<!-- Pipeline Tabs -->
+<div data-tabs>
+    <div class="tabs">
+        <div class="tab active" data-tab="t2i">🖼 Text-to-Image</div>
+        <div class="tab" data-tab="t2v">🎬 Text-to-Video</div>
+        <div class="tab" data-tab="i2v">📽 Image-to-Video</div>
+        <div class="tab" data-tab="other">🧩 Other</div>
+    </div>
+
+    {% for category, models_list in [('t2i', models.image), ('t2v', models.video), ('i2v', models.i2v), ('other', models.other)] %}
+    <div class="tab-content {{ 'active' if category == 't2i' }}" id="{{ category }}">
+        {% if models_list %}
+        <div class="grid">
+            {% for m in models_list[:18] %}
+            <div class="card" style="padding:16px;">
+                <div class="flex flex-wrap gap-2" style="margin-bottom:8px;">
+                    <span class="badge badge-info">{{ m.pipeline_tag }}</span>
+                    {% if m.downloads > 100000 %}
+                    <span class="badge badge-healthy">🔥 Popular</span>
+                    {% endif %}
+                </div>
+                <h3 style="font-size:14px;margin-bottom:4px;">
+                    <a href="https://huggingface.co/{{ m.id }}" target="_blank" style="color:var(--accent);text-decoration:none;">
+                        {{ m.id.split('/')[-1] }}
+                    </a>
+                </h3>
+                <div class="meta" style="font-size:12px;">{{ m.id }}</div>
+                <div class="flex gap-2 mt-2" style="font-size:12px;">
+                    <span>⬇️ {{ m.downloads }}</span>
+                    <span>❤️ {{ m.likes }}</span>
+                    {% if m.inference_providers %}
+                    <span class="text-green">✅ Serverless</span>
+                    {% endif %}
+                </div>
+                {% if m.pipeline_tag in ('text-to-image', 'image-to-image') %}
+                <div style="margin-top:8px;">
+                    <button class="btn btn-sm" 
+                            hx-post="/comfyui/workflow/generate"
+                            hx-vals='{"model": "{{ m.id }}", "pipeline": "{{ m.pipeline_tag }}"}'
+                            hx-target="#workflow-result"
+                            hx-swap="innerHTML">
+                        Generate ComfyUI Workflow
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card text-center text-muted">No models found for this category.</div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+<div id="model-results"></div>
+<div id="workflow-result"></div>
+{% endblock %}

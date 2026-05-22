@@ -1,0 +1,270 @@
+# Docker Compose Configuration for Eliza + XCreator Pro Integration
+version: '3.8'
+
+services:
+  # Main Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/xcreator_eliza
+      - REDIS_URL=redis://redis:6379
+      - ELIZA_BASE_URL=http://eliza:3000
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - RUNPOD_API_KEY=${RUNPOD_API_KEY}
+    depends_on:
+      - postgres
+      - redis
+      - eliza
+      - model-router
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - xcreator-network
+
+  # Eliza Framework
+  eliza:
+    build:
+      context: ./eliza-framework
+      dockerfile: Dockerfile
+    ports:
+      - "4001:4001"
+    environment:
+      - NODE_ENV=production
+      - PORT=4001
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/eliza
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - ./eliza-data:/app/data
+      - ./eliza-logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - xcreator-network
+
+  # Model Router Service
+  model-router:
+    build:
+      context: ./model-router
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+    depends_on:
+      - redis
+      - gemma3
+      - chatterbox
+    restart: unless-stopped
+    networks:
+      - xcreator-network
+
+  # AI Models
+  gemma3:
+    image: vllm/vllm:latest
+    container_name: gemma3-server
+    ports:
+      - "8001:8000"
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+      - MODEL=google/gemma-2b-it
+      - DTYPE=float16
+      - MAX_MODEL_LEN=4096
+      - GPU_MEMORY_UTILIZATION=0.8
+    volumes:
+      - ./models/gemma3:/models
+      - ./cache:/root/.cache
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    networks:
+      - xcreator-network
+
+  chatterbox:
+    image: vllm/vllm:latest
+    container_name: chatterbox-server
+    ports:
+      - "8002:8000"
+    environment:
+      - CUDA_VISIBLE_DEVICES=1
+      - MODEL=chatterbox-ai/chatterbox-7b
+      - DTYPE=float16
+      - MAX_MODEL_LEN=8192
+      - GPU_MEMORY_UTILIZATION=0.9
+    volumes:
+      - ./models/chatterbox:/models
+      - ./cache:/root/.cache
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    networks:
+      - xcreator-network
+
+  # Hugging Face Hub
+  hf-hub:
+    image: huggingface/text-generation-inference:latest
+    container_name: hf-hub-server
+    ports:
+      - "8004:80"
+    environment:
+      - MODEL_ID=mistralai/Mistral-7B-Instruct-v0.1
+      - QUANTIZE=gptq
+      - MAX_INPUT_LENGTH=4096
+      - MAX_TOTAL_TOKENS=8192
+      - MAX_BATCH_PREFILL_TOKENS=4096
+      - CUDA_VISIBLE_DEVICES=2
+    volumes:
+      - ./hf-models:/data
+      - ./cache:/root/.cache
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    networks:
+      - xcreator-network
+
+  # External API Proxies
+  openrouter-proxy:
+    build:
+      context: ./openrouter-integration
+      dockerfile: Dockerfile
+    ports:
+      - "3003:3000"
+    environment:
+      - NODE_ENV=production
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - APP_URL=https://xcreator-pro.com
+    restart: unless-stopped
+    networks:
+      - xcreator-network
+
+  runpod-proxy:
+    build:
+      context: ./runpod-integration
+      dockerfile: Dockerfile
+    ports:
+      - "3005:3000"
+    environment:
+      - NODE_ENV=production
+      - RUNPOD_API_KEY=${RUNPOD_API_KEY}
+    restart: unless-stopped
+    networks:
+      - xcreator-network
+
+  # Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres-db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=xcreator_eliza
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+    networks:
+      - xcreator-network
+
+  # Redis for caching and sessions
+  redis:
+    image: redis:7-alpine
+    container_name: redis-cache
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+      - ./redis.conf:/etc/redis/redis.conf
+    command: redis-server /etc/redis/redis.conf
+    restart: unless-stopped
+    networks:
+      - xcreator-network
+
+  # Monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus-monitor
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    restart: unless-stopped
+    networks:
+      - xcreator-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana-dashboard
+    ports:
+      - "3002:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana:/etc/grafana/provisioning
+    restart: unless-stopped
+    networks:
+      - xcreator-network
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+      - ./static:/var/www/static
+    depends_on:
+      - app
+      - model-router
+      - openrouter-proxy
+    restart: unless-stopped
+    networks:
+      - xcreator-network
+
+volumes:
+  postgres-data:
+  redis-data:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  xcreator-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+```

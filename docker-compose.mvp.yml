@@ -1,0 +1,114 @@
+# Docker Compose Configuration for XCreator Pro MVP (Phase 1)
+# Minimal setup with only core services for testing
+version: '3.8'
+
+services:
+  # Main Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - ELIZA_BASE_URL=http://eliza:4001
+      - JWT_SECRET=${JWT_SECRET}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - N8N_API_TOKEN=${N8N_API_TOKEN}
+      - N8N_API_URL=${N8N_API_URL}
+    depends_on:
+      - postgres
+      - redis
+      - eliza
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - xcreator-network
+
+  # Eliza Character Generator
+  eliza:
+    build:
+      context: ./eliza-framework
+      dockerfile: Dockerfile
+    ports:
+      - "4001:4001"
+    environment:
+      - NODE_ENV=production
+      - PORT=4001
+      - HOST=0.0.0.0
+    volumes:
+      - ./eliza-framework/uploads:/app/uploads
+    restart: unless-stopped
+    networks:
+      - xcreator-network
+
+  # Eliza Bridge Service
+  eliza-bridge:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: node services/eliza-bridge.js
+    ports:
+      - "3004:3004"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=3004
+      - ELIZA_BASE_URL=http://eliza:4001
+    depends_on:
+      - eliza
+    restart: unless-stopped
+    networks:
+      - xcreator-network
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres-db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=xcreator_eliza
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+    networks:
+      - xcreator-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: redis-cache
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    networks:
+      - xcreator-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  postgres-data:
+  redis-data:
+
+networks:
+  xcreator-network:
+    driver: bridge

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>🖥 GPU Management <span class="text-muted" style="font-weight:400;font-size:16px;">— RunPod & Vast.ai</span></h2>
+
+<div class="grid" style="grid-template-columns: 1fr 1fr;">
+    <div class="card">
+        <h3>🚀 RunPod Serverless</h3>
+        <p class="text-muted">Pre-deployed ComfyUI endpoints with auto-scaling.</p>
+        <div class="form-group">
+            <label>API Key</label>
+            <input type="password" id="rp-key" placeholder="rpa_...">
+        </div>
+        <div class="form-group">
+            <label>Template</label>
+            <select id="rp-template" style="margin-bottom:8px;">
+                <option value="runpod/worker-comfyui:latest-flux1-dev">ComfyUI + FLUX.1-dev</option>
+                <option value="runpod/worker-comfyui:latest-sdxl">ComfyUI + SDXL</option>
+                <option value="runpod/worker-comfyui:latest-sd3">ComfyUI + SD3.5</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>GPU</label>
+            <select id="rp-gpu">
+                <option value="NVIDIA-RTX-4090">RTX 4090 (24GB) — $0.49/hr</option>
+                <option value="NVIDIA-RTX-6000-Ada">RTX 6000 Ada (48GB) — $0.79/hr</option>
+                <option value="NVIDIA-A6000">A6000 (48GB) — $0.99/hr</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Max Workers</label>
+            <input type="number" id="rp-workers" value="1" min="1" max="5">
+        </div>
+        <div class="form-group">
+            <label>Idle Timeout (minutes)</label>
+            <input type="number" id="rp-idle" value="30" min="5" max="300">
+        </div>
+        <button class="btn btn-primary"
+                hx-post="/gpu/runpod/deploy"
+                hx-include="#rp-key, #rp-template, #rp-gpu, #rp-workers, #rp-idle"
+                hx-target="#gpu-result"
+                hx-swap="innerHTML">
+            🚀 Deploy RunPod Endpoint
+        </button>
+    </div>
+
+    <div class="card">
+        <h3>🖥 Vast.ai</h3>
+        <p class="text-muted">Find and rent GPU instances with ComfyUI pre-installed.</p>
+        <div class="form-group">
+            <label>API Key</label>
+            <input type="password" id="vast-key" placeholder="...">
+        </div>
+        <div class="form-group">
+            <label>Min GPU RAM</label>
+            <select id="vast-vram">
+                <option value="16">16 GB</option>
+                <option value="24" selected>24 GB</option>
+                <option value="48">48 GB</option>
+                <option value="80">80 GB</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Max Price ($/hr)</label>
+            <input type="number" id="vast-price" value="0.50" step="0.01" min="0.10">
+        </div>
+        <button class="btn btn-primary"
+                hx-post="/gpu/vast/search"
+                hx-include="#vast-key, #vast-vram, #vast-price"
+                hx-target="#gpu-result"
+                hx-swap="innerHTML">
+            🔍 Search Instances
+        </button>
+    </div>
+</div>
+
+<div id="gpu-result"></div>
+
+<!-- GPU Pricing Reference -->
+<div class="card mt-2">
+    <h3>📊 GPU Pricing Reference</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Provider</th>
+                <th>GPU</th>
+                <th>VRAM</th>
+                <th>Price/hr</th>
+                <th>Best For</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>RunPod</td><td>RTX 4090</td><td>24 GB</td><td>$0.49</td><td>FLUX, SDXL, LoRA stacks</td></tr>
+            <tr><td>RunPod</td><td>RTX 6000 Ada</td><td>48 GB</td><td>$0.79</td><td>Wan2.1 video, high-res</td></tr>
+            <tr><td>RunPod</td><td>A6000</td><td>48 GB</td><td>$0.99</td><td>Video, heavy workflows</td></tr>
+            <tr><td>RunPod</td><td>A100 80GB</td><td>80 GB</td><td>$2.19</td><td>Wan2.2 14B, heavy video</td></tr>
+            <tr><td>Vast.ai</td><td>RTX 4090</td><td>24 GB</td><td>~$0.30</td><td>Budget FLUX/SDXL</td></tr>
+            <tr><td>Vast.ai</td><td>A6000</td><td>48 GB</td><td>~$0.50</td><td>Budget video</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Deployed Endpoints -->
+<div class="card mt-2">
+    <h3>📡 Your Endpoints</h3>
+    <div class="text-muted text-center" style="padding:20px;">
+        No endpoints deployed yet. Use the forms above to provision GPU.
+    </div>
+</div>
+{% endblock %}

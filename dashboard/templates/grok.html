@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>🤖 Grok Generation <span class="text-muted" style="font-weight:400;font-size:16px;">— xAI API image + video</span></h2>
+
+<div class="status-bar">
+    <div class="status-item">
+        <span class="status-dot {{ 'green' if api_configured else 'red' }}"></span>
+        API: {{ 'Configured ✓' if api_configured else 'Not configured — set XAI_API_KEY' }}
+    </div>
+    <div class="status-item text-muted">
+        Model: grok-imagine-image-quality / grok-imagine-video
+    </div>
+</div>
+
+<div class="grid" style="grid-template-columns: 1fr 1fr;">
+    <!-- Image Generation -->
+    <div class="card">
+        <h3>🖼 Generate Images</h3>
+        <div class="form-group">
+            <label>Prompt</label>
+            <textarea id="img-prompt" rows="3" placeholder="Describe the image you want to generate..." style="resize:vertical;">A photorealistic sunset over a tropical beach, vibrant colors, 8K</textarea>
+        </div>
+        <div class="grid" style="grid-template-columns: 1fr 1fr;">
+            <div class="form-group">
+                <label>Count</label>
+                <select id="img-n">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Aspect Ratio</label>
+                <select id="img-ar">
+                    <option value="1:1">1:1 (Square)</option>
+                    <option value="16:9" selected>16:9 (Landscape)</option>
+                    <option value="9:16">9:16 (Portrait)</option>
+                    <option value="3:2">3:2 (Photo)</option>
+                    <option value="2:1">2:1 (Banner)</option>
+                    <option value="auto">Auto</option>
+                </select>
+            </div>
+        </div>
+        <button class="btn btn-primary" 
+                hx-post="/grok/generate/image"
+                hx-include="#img-prompt, #img-n, #img-ar"
+                hx-target="#grok-results"
+                hx-swap="innerHTML"
+                hx-indicator="#img-spinner">
+            🚀 Generate
+        </button>
+        <span id="img-spinner" class="spinner htmx-indicator" style="margin-left:8px;"></span>
+    </div>
+
+    <!-- Video Generation -->
+    <div class="card">
+        <h3>🎬 Generate Video</h3>
+        <div class="form-group">
+            <label>Prompt</label>
+            <textarea id="vid-prompt" rows="3" placeholder="Describe the video..." style="resize:vertical;">Epic cinematic drone shot flying through mountain peaks at sunrise, dramatic clouds, 4K quality</textarea>
+        </div>
+        <div class="grid" style="grid-template-columns: 1fr 1fr 1fr;">
+            <div class="form-group">
+                <label>Duration (s)</label>
+                <input type="number" id="vid-duration" value="10" min="5" max="15">
+            </div>
+            <div class="form-group">
+                <label>Aspect</label>
+                <select id="vid-ar">
+                    <option value="16:9" selected>16:9</option>
+                    <option value="9:16">9:16</option>
+                    <option value="1:1">1:1</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Resolution</label>
+                <select id="vid-res">
+                    <option value="480p">480p</option>
+                    <option value="720p" selected>720p</option>
+                    <option value="1080p">1080p</option>
+                </select>
+            </div>
+        </div>
+        <button class="btn btn-primary" 
+                hx-post="/grok/generate/video"
+                hx-include="#vid-prompt, #vid-duration, #vid-ar, #vid-res"
+                hx-target="#grok-results"
+                hx-swap="innerHTML"
+                hx-indicator="#vid-spinner">
+            🎬 Generate
+        </button>
+        <span id="vid-spinner" class="spinner htmx-indicator" style="margin-left:8px;"></span>
+        <div class="mt-2 text-muted" style="font-size:12px;">
+            ⏱ Video generation takes 30s-5min. SDK handles polling automatically.
+        </div>
+    </div>
+</div>
+
+<!-- Results -->
+<div id="grok-results"></div>
+
+<!-- API Quick Reference -->
+<div class="card mt-2">
+    <h3>📋 xAI API Reference</h3>
+    <pre style="font-size:12px;line-height:1.6;">
+Image Generation:
+  POST https://api.x.ai/v1/images/generations
+  Model: grok-imagine-image-quality
+  Params: prompt, n (1-4), aspect_ratio (1:1, 16:9, 9:16, etc.)
+
+  python:
+    from openai import OpenAI
+    client = OpenAI(base_url="https://api.x.ai/v1", api_key="xai-...")
+    resp = client.images.generate(model="grok-imagine-image-quality", prompt="...")
+    print(resp.data[0].url)
+
+Image Editing:
+  POST https://api.x.ai/v1/images/edits
+  Multipart: image + prompt + model
+
+Video Generation:
+  POST https://api.x.ai/v1/videos/generations (async)
+  GET  https://api.x.ai/v1/videos/{request_id} (poll)
+  Model: grok-imagine-video
+  Params: prompt, duration (5-15s), aspect_ratio, resolution (480p/720p/1080p)
+
+  python (auto-polling):
+    from xai_sdk import Client
+    client = Client()
+    resp = client.video.generate(model="grok-imagine-video", prompt="...", duration=10)
+    print(resp.url)
+
+Pricing:
+  Image: flat per-image cost (see https://docs.x.ai/developers/cost-tracking)
+  Video: per-request cost
+    </pre>
+</div>
+{% endblock %}
