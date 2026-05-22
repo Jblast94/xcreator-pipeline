@@ -1,243 +1,183 @@
-# XCreator Pipeline — User Setup Guide
-## Everything you need to run to get autonomous posting live
+# XCreator Pipeline — Complete Setup Guide
+
+## Your Setup: X Premium + SuperGrok
+
+You're already on the right plans:
+- **X Premium** → X API access (use xurl CLI)
+- **SuperGrok** → xAI API key (already configured)
+- **X Premium (alt account @bbj4t)** → second API slot
+- **Playwright** → browser automation backup
 
 ---
 
-## 1. GitHub & Gitea Access
+## 1. Generate an xAI API Key (You do this)
 
-### Clone the main repo to your machine
+1. Go to https://console.x.ai
+2. Create or copy an API key
+3. Paste it into the pipeline:
 
 ```bash
-# From GitHub (public, no auth needed to read):
-git clone https://github.com/Jblast94/xcreator-pipeline.git
-cd xcreator-pipeline
+cd /root/xcreator-pipeline
+echo "XAI_API_KEY=xai-xxxxxxxxxxxx" >> .env
+```
 
-# Or from Gitea (if you have SSH access):
-git clone ssh://git@100.97.161.104:2222/root/xcreator-pipeline.git
-cd xcreator-pipeline
+Already configured in Hermes — the Grok MCP tools are live. You can test:
+
+```bash
+# From dashboard:
+cd dashboard && uv run python app.py
+# Open http://localhost:7861 → Create tab → generate content
 ```
 
 ---
 
-## 2. xurl — X/Twitter CLI (MANDATORY for auto-posting)
+## 2. Auth xurl for Posting to X (You do this)
 
-This is the #1 blocker. Do this on your main machine (ai-laptop or linux-home).
+xurl is already installed on edge. You just need to authenticate with your X Premium account.
 
-```bash
-# Install xurl
-curl -fsSL https://raw.githubusercontent.com/xdevplatform/xurl/main/install.sh | bash
-
-# Verify
-xurl --help
-```
-
-### Create an X API App
+### Step 1: Create an X Developer App
 
 1. Go to https://developer.x.com/en/portal/dashboard
-2. Create a new project + app
-3. Set **redirect URI**: `http://localhost:8080/callback`
-4. Copy the **Client ID** + **Client Secret**
-5. Set app type to **"Web app, automated app or bot"** in User Authentication Settings
+2. Create a new app (you can use your Premium access)
+3. **App type**: "Web app, automated app or bot"
+4. **Redirect URI**: `http://localhost:8080/callback`
+5. **Website URL**: `https://jb-ai.encke-elver.ts.net` or any of your domains
+6. Copy **Client ID** and **Client Secret**
 
-### Auth your first X account (@jblast94)
+### Step 2: Auth @jblast94
 
 ```bash
-xurl auth apps add jblast --client-id YOUR_CLIENT_ID --client-secret YOUR_CLIENT_SECRET
+xurl auth apps add jblast --client-id YOUR_ID_HERE --client-secret YOUR_SECRET_HERE
 xurl auth oauth2 --app jblast @jblast94
-# ↑ This opens a browser. Auth with @jblast94's X account.
+# ↑ Opens browser — log in as @jblast94
 xurl auth default jblast
-
-# Verify:
-xurl whoami
+xurl whoami  # Verify
 ```
 
-### Auth your second X account (@bbj4t)
+### Step 3: Auth @bbj4t
 
 ```bash
-xurl auth apps add bbj4t --client-id YOUR_CLIENT_ID --client-secret YOUR_CLIENT_SECRET
+xurl auth apps add bbj4t --client-id YOUR_ID_HERE --client-secret YOUR_SECRET_HERE
 xurl auth oauth2 --app bbj4t @bbj4t
-# ↑ Auth with @bbj4t's X account.
-
-# To post as bbj4t, use:
-xurl --app bbj4t post "tweet text"
 ```
 
-### Test posting
+### Step 4: Test Posting
 
 ```bash
-xurl post "Testing the pipeline. Autonomous content incoming. 🤖"
+xurl post "Pipeline test. Autonomous content incoming. 🤖"
+xurl --app bbj4t post "Testing from the second account."
 ```
 
 ---
 
-## 3. Run the Dashboard
+## 3. Browser Automation (Playwright) — Backup
+
+For accounts without API access, or as a fallback:
+
+### Save cookies (one-time, interactive):
 
 ```bash
-cd xcreator-pipeline/dashboard
+cd /root/xcreator-pipeline/agents
+python3 playwright_post.py --login --handle jblast94 --cookies /root/.x-cookies-jblast.json
+# ↑ Browser opens — log into X, press ENTER to save
+python3 playwright_post.py --login --handle bbj4t --cookies /root/.x-cookies-bbj4t.json
+```
 
-# Install dependencies (use uv, never pip):
-uv sync
+### Post via browser:
 
-# Set API keys (if not already in env):
-export XAI_API_KEY="xai-..."    # From https://console.x.ai
-export HF_TOKEN="hf_..."         # From https://huggingface.co/settings/tokens
+```bash
+python3 playwright_post.py --handle jblast94 --text "Posted via browser automation" --cookies /root/.x-cookies-jblast.json
+python3 playwright_post.py --handle jblast94 --thread "Tweet 1" "Tweet 2" "Tweet 3" --cookies /root/.x-cookies-jblast.json
+```
 
-# Launch:
+---
+
+## 4. Run the Dashboard
+
+```bash
+cd /root/xcreator-pipeline/dashboard
 uv run python app.py
-# → Opens at http://localhost:7861
+# → http://localhost:7861
 ```
 
-### Dashboard tabs
+### What works right now:
 
-| Tab | Purpose |
-|-----|---------|
-| **Dashboard** | System overview, health status |
-| **Create** | Topic → image + caption + thread in one click |
-| **Trends** | Grok prompt library — scan X niches |
-| **Agents** | View/manage Eliza character files |
-| **Distribute** | Publishing guides for each platform |
-| Grok | (legacy) xAI direct image/video gen |
-| Outputs | Generated content archive |
+| Feature | Status | How |
+|---------|--------|-----|
+| **Create tab** | ✅ LIVE | Topic → image (HF Space) + caption (Grok) |
+| **Trends tab** | ✅ LIVE | Grok prompt library — copy/paste into Grok |
+| **Agents tab** | ✅ LIVE | Shows generated Eliza character files |
+| **Distribute tab** | ✅ LIVE | Guides for X (xurl) + Telegram |
+| **X posting** | ⏳ Needs you | Auth xurl (Step 2 above) |
+| **Browser posting** | ⏳ Needs you | Save cookies (Step 3 above) |
 
 ---
 
-## 4. Grok Trend Scanning (Your Part)
+## 5. Your Grok Workflow
 
-Open Grok on X (or `mcp_grok_chat`) and paste these:
+No complex trend scanner needed. **You are the trend scanner.** Open Grok on X, paste:
 
-### Quick Scan — copy this whole block:
-
+**Quick Scan:**
 ```
 List 5 trending niches on X right now. For each: name, description, tone, audience, 3 hook formulas, 5 hashtags, monetization angle, trending velocity. Return as JSON array.
 ```
 
-### Deep Dive — replace {niche}:
-
+**Content from trend:**
 ```
-Analyze the {niche} niche on X. What hooks work? Top 5 creators? Monetization strategies? Return structured data.
-```
-
-### Daily Trend Report:
-
-```
-Search X for what's trending RIGHT NOW across: AI, crypto, fitness, adult content, finance, tech. For each niche: top 3 trending posts with WHY. Recommend: best niche to post in right now and what angle.
-```
-
-### Generate Content from Trend:
-
-```
-Based on trending topic "{topic}" in {niche}:
+Based on the trending topic "{topic}" in {niche}:
 1. Hook tweet (≤280 chars)
 2. 5-tweet thread
 3. 10 hashtags
-4. Image prompt for high engagement
+4. Image prompt
 
 Return as structured JSON.
 ```
 
+**Character from niche:**
+```
+Create an ElizaOS character.json for a {niche} influencer.
+Tone: {tone}. Audience: {audience}.
+Generate: name, bio (5), lore (5), postExamples (5), style, topics.
+Make it human, not bot.
+```
+
+**Paste Grok's output back to me** — I'll generate the character files and schedule the posting.
+
 ---
 
-## 5. Schedule Auto-Posting (via Hermes CLI)
+## 6. Schedule Auto-Posting
 
-Once xurl is authed on the machine running Hermes:
+After xurl is authed:
 
 ```bash
-# Post every 6 hours from a trend-based agent:
+# Post every 6 hours (trend-based):
 hermes cron create \
-  --name "trend-agent-auto" \
+  --name "auto-trend-post" \
   --schedule "every 6h" \
-  --prompt "Search X for trending topic. Generate hook + thread + image. Post to X using xurl. Use image-turbo MCP for image." \
+  --prompt "Search X for trending topic in AI/tech. Generate hook + thread + image. Post to @jblast94 using xurl." \
   --skills xurl,social-orchestrator
 
-# Daily morning post at 8 AM:
+# Daily morning post:
 hermes cron create \
   --name "morning-tweet" \
   --schedule "0 8 * * *" \
-  --prompt "Generate a tweet about AI/tech trends. Hook + hashtags + image. Post to X." \
+  --prompt "Generate a provocative tweet about AI/agents. Use mcp_grok_chat for text, image-turbo for image. Post to @jblast94 using xurl." \
   --skills xurl,social-orchestrator
 ```
 
 ---
 
-## 6. Deploy from the Dashboard
+## 7. Your Quick Checklist
 
-```bash
-# To run in background:
-cd /root/xcreator-pipeline/dashboard
-nohup uv run python app.py > pipeline.log 2>&1 &
-echo "Dashboard running at http://localhost:7861"
-```
+| # | Task | Command | Time |
+|---|------|---------|------|
+| 1 | Get xAI API key | https://console.x.ai | 2 min |
+| 2 | Create X dev app | https://developer.x.com | 5 min |
+| 3 | Auth @jblast94 | `xurl auth oauth2 --app jblast @jblast94` | 2 min |
+| 4 | Auth @bbj4t | `xurl auth oauth2 --app bbj4t @bbj4t` | 2 min |
+| 5 | Test post | `xurl post "hello world"` | 1 min |
+| 6 | Run dashboard | `cd dashboard && uv run python app.py` | 1 min |
+| 7 | Open Grok on X | Paste Quick Scan prompt | 2 min |
+| 8 | Paste results to me | Drop JSON output in this chat | 1 min |
 
-Or via Docker:
-
-```bash
-cd /root/xcreator-pipeline
-docker-compose -f docker-compose.eliza.yml up -d
-```
-
----
-
-## 7. Glossary
-
-| Term | What it means |
-|------|--------------|
-| **xurl** | X/Twitter CLI — posts tweets, uploads media, reads timelines |
-| **ElizaOS** | Open-source agent framework — runs character.json files |
-| **Character** | JSON file defining an agent's personality, style, platform clients |
-| **Grok** | xAI's LLM — used for TEXT ONLY (cheap captions/threads) |
-| **Z-Image-Turbo** | Free HF Space — generates images at zero cost |
-| **HF Space** | Hugging Face hosted app — free inference tier |
-| **Cron job** | Scheduled task that runs on a timer (Hermes or systemd) |
-| **SeaweedFS** | Distributed file system — stores all outputs at /mnt/storage/comfy/ |
-
----
-
-## 8. Quick Reference
-
-```bash
-# Dashboard
-uv run python dashboard/app.py                    # Start UI
-open http://localhost:7861                         # Open it
-
-# Post to X
-xurl post "text"                                   # Single tweet
-xurl --app bbj4t post "text"                       # Other account
-xurl media upload photo.png && xurl post "x" --media-id ID  # With image
-xurl reply POST_ID "text"                          # Reply
-xurl thread TWEET1 "TWEET2" "TWEET3"               # Thread
-
-# Cron
-hermes cron list                                   # See scheduled jobs
-hermes cron remove JOB_ID                          # Stop a job
-hermes cron create --name "" --schedule "" --prompt ""  # Create job
-
-# Git
-git push origin main                               # Push to GitHub
-git push gitea main                                # Push to Gitea
-```
-
----
-
-## 9. Platform Accounts Ready to Wire
-
-| Account | Platform | xurl Setup | Auth Done? |
-|---------|----------|-----------|------------|
-| @jblast94 | X/Twitter | ⬜ Not yet | — |
-| @bbj4t | X/Twitter | ⬜ Not yet | — |
-| Instagram | IG | 🔜 Future | — |
-| TikTok | TT | 🔜 Future | — |
-| OF account | OnlyFans | 🔜 Future | — |
-| Telegram | TG | ✅ Already | Hermes connected |
-
----
-
-## What to Do Right Now (Priority Order)
-
-1. **⬜ `curl -fsSL ... | bash`** → Install xurl
-2. **⬜ `xurl auth apps add jblast`** → Register your X app
-3. **⬜ `xurl auth oauth2 --app jblast @jblast94`** → Auth your main account
-4. **⬜ `xurl whoami`** → Verify it works
-5. **⬜ Open Grok on X** → Paste the Quick Scan prompt → Send me results
-6. **⬜ `uv run python app.py`** → Start dashboard
-7. **⬜ Paste Grok results into Trends tab** → Generate characters
-8. **⬜ `hermes cron create`** → Schedule auto-posting
+**Total: ~15 minutes to first autonomous post.**
