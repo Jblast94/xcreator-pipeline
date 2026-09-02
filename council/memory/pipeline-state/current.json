@@ -10,5 +10,6 @@
   "agents_registered": ["grok-ara", "gemini-council", "custom-relay-boxes"],
   "agents_wired": ["grok-ara"],
   "pending": ["wire-gemini-endpoint", "wire-custom-relay-endpoint", "n8n-session-ingest"],
-  "sealed_decisions": ["001", "002", "003", "004", "005"]
+  "sealed_decisions": ["001", "002", "003", "004", "005"],
+  "automation_ingest": "council-session-ingest (hourly weekdays, pending create)"
 }
