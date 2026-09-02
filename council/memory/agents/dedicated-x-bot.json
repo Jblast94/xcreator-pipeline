@@ -1,0 +1,24 @@
+{
+  "id": "dedicated-x-bot",
+  "name": "Dedicated X Bot Account",
+  "role": "publisher-worker",
+  "status": "planned-pending-account-creation",
+  "parent_account": "user-main (human-run, to be linked for automated label)",
+  "connection": {
+    "type": "grok-bot-cloud-vm + write-layer",
+    "read": "native-x-connector (search/timeline/mentions)",
+    "write": "pending-mcp (Blotato/OpenTweet/X-API-write) or browser-skill on VM",
+    "notes": "Grok Bot official connector is read-only. Posting needs an extra write layer. Do not scrape."
+  },
+  "capabilities": ["research", "draft-captions", "schedule-post", "log-performance", "affiliate-scan"],
+  "automation_rules": {
+    "label_required": true,
+    "bio_disclosure": "Automated AI account — council pipeline content",
+    "pace_posts_per_day": "1-5 (new account ramp)",
+    "ai_content_approval": "required-before-autonomous",
+    "no_auto_replies": true,
+    "no_scraping": true
+  },
+  "monetization": ["original-content-rewards", "in-post-affiliate", "creator-subscriptions", "x-money-tips"],
+  "registered_at": "2026-09-01T22:00:00-04:00"
+}
