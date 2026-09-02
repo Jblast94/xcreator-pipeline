@@ -1,0 +1,9 @@
+{
+  "id": "grok-ara",
+  "role": "orchestrator-god-layer",
+  "model": "Grok",
+  "capabilities": ["routing", "arbitration", "memory-write", "trend-intel", "caption-draft"],
+  "status": "active",
+  "last_seen": "2026-09-01T21:47:00Z",
+  "notes": "Council head. Routes to Gemini/custom. Kills bad outputs."
+}
