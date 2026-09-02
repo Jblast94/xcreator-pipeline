@@ -2,10 +2,13 @@
   "pipeline": "xcreator-pipeline",
   "stage": "intel-only (gated: imagine/post/pay)",
   "council_active": true,
+  "god_layer": "grok-ara",
   "memory_backend": "Google Drive + GitHub mirror",
-  "last_council_run": "2026-09-01T21:47:00Z",
+  "last_council_run": "2026-09-01T21:50:00Z",
   "cost_this_run_usd": 0.0,
   "cap_usd": 0.50,
-  "agents_registered": ["grok-ara"],
-  "pending": ["wire-gemini", "wire-custom-agents", "n8n-ingest"]
+  "agents_registered": ["grok-ara", "gemini-council", "custom-relay-boxes"],
+  "agents_wired": ["grok-ara"],
+  "pending": ["wire-gemini-endpoint", "wire-custom-relay-endpoint", "n8n-session-ingest"],
+  "sealed_decisions": ["001", "002", "003", "004", "005"]
 }
