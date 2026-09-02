@@ -1,0 +1,15 @@
+{
+  "id": "grok-bot",
+  "name": "Grok Bot",
+  "role": "worker-agent",
+  "status": "registered-pending-endpoint",
+  "connection": {
+    "type": "google-drive-relay",
+    "read_path": "Council-Orchestrator-Memory/Agents/grok-bot-inbox",
+    "write_path": "Council-Orchestrator-Memory/Agents/grok-bot-outbox",
+    "notes": "Rate-limited earlier; do not upgrade yet. Polls Drive for tasks assigned by council. Returns results to outbox."
+  },
+  "capabilities": ["trend-intel", "caption-draft", "memory-ingest", "relay-box-tasks"],
+  "rate_limit_note": "Hit limits previously; keep on standby, use only when council routes low-priority or parallel work.",
+  "registered_at": "2026-09-01T21:50:00-04:00"
+}
