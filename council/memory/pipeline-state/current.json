@@ -3,13 +3,22 @@
   "stage": "intel-only (gated: imagine/post/pay)",
   "council_active": true,
   "god_layer": "grok-ara",
-  "memory_backend": "Google Drive + GitHub mirror",
-  "last_council_run": "2026-09-01T21:50:00Z",
+  "orchestrator": "Ara (Grok)",
+  "memory_backend": "github-primary (Jblast94/xcreator-pipeline/council/memory), drive-mirror (Council-Orchestrator-Memory)",
+  "last_council_run": "2026-09-01T21:52:00Z",
   "cost_this_run_usd": 0.0,
   "cap_usd": 0.50,
-  "agents_registered": ["grok-ara", "gemini-council", "custom-relay-boxes"],
+  "agents_registered": ["grok-ara", "grok-bot", "gemini-council", "custom-relay-boxes"],
   "agents_wired": ["grok-ara"],
+  "grok_bot": {
+    "status": "registered-pending-endpoint",
+    "mode": "drive-relay-standby",
+    "rate_limited": true,
+    "upgrade_authorized": false,
+    "inbox_folder_id": "1xeJDrVC9-wKjnL4A7Ch6gneYAW-8-t_G",
+    "outbox_folder_id": "1ufwjHIxG43-ZfdYJEdPjpqiAcdiVgS6f"
+  },
   "pending": ["wire-gemini-endpoint", "wire-custom-relay-endpoint", "n8n-session-ingest"],
-  "sealed_decisions": ["001", "002", "003", "004", "005"],
+  "sealed_decisions": ["001", "002", "003", "004", "005", "006"],
   "automation_ingest": "council-session-ingest (hourly weekdays, pending create)"
 }
