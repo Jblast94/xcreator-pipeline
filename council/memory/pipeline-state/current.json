@@ -5,7 +5,7 @@
   "god_layer": "grok-ara",
   "orchestrator": "Ara (Grok)",
   "memory_backend": "github-primary (Jblast94/xcreator-pipeline/council/memory), drive-mirror (Council-Orchestrator-Memory)",
-  "last_council_run": "2026-09-02T01:55:00Z",
+  "last_council_run": "2026-09-02T01:58:00Z",
   "cost_this_run_usd": 0.0,
   "cap_usd": 0.50,
   "agents_registered": ["grok-ara", "grok-bot", "gemini-council", "custom-relay-boxes"],
@@ -18,7 +18,7 @@
     "inbox_folder_id": "1xeJDrVC9-wKjnL4A7Ch6gneYAW-8-t_G",
     "outbox_folder_id": "1ufwjHIxG43-ZfdYJEdPjpqiAcdiVgS6f"
   },
-  "pending": ["wire-gemini-endpoint", "wire-custom-relay-endpoint", "n8n-session-ingest", "x-premium-confirm", "ocr-enroll-sep8"],
+  "pending": ["wire-gemini-endpoint", "wire-custom-relay-endpoint", "x-premium-confirm", "ocr-enroll-sep8"],
   "sealed_decisions": ["001", "002", "003", "004", "005", "006", "007"],
   "monetization": {
     "platform": "x-only",
@@ -27,5 +27,5 @@
     "horizon_days": 30,
     "token_upgrade_policy": "pay-from-revenue-only"
   },
-  "automation_ingest": "council-session-ingest (hourly weekdays, pending create)"
+  "automation_ingest": "council-session-ingest (hourly weekdays, LIVE, next 10 PM ET)"
 }
