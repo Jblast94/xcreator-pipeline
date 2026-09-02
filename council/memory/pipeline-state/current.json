@@ -20,11 +20,17 @@
   },
   "dedicated_x_bot": {
     "status": "planned-pending-account-creation",
-    "write_layer": "pending",
-    "account": null
+    "write_layer": "n8n -> Gradio Space (OAuth 1.0a)",
+    "account": null,
+    "n8n_workflow": "council-x-poster-n8n",
+    "gradio_space": "pending-deploy"
   },
-  "pending": ["wire-gemini-endpoint", "wire-custom-relay-endpoint", "x-premium-confirm", "ocr-enroll-sep8", "create-dedicated-x-account", "connect-write-layer-to-grok-bot"],
-  "sealed_decisions": ["001", "002", "003", "004", "005", "006", "007", "008"],
+  "posting_path": "Grok outbox -> n8n (15min poll) -> Gradio Space /gradio_api/call/post -> X API",
+  "hf_auth": "anonymous (pending user link at hf.co/settings/mcp)",
+  "n8n_workflow_validated": true,
+  "n8n_warnings": ["hardcoded credential placeholders (expected)", "tweet_id expression pending real Space output"],
+  "pending": ["link-hf-account-mcp", "deploy-gradio-space", "wire-real-tokens-n8n", "activate-workflow-after-7day-review", "wire-gemini-endpoint", "wire-custom-relay-endpoint", "x-premium-confirm", "ocr-enroll-sep8", "create-dedicated-x-account"],
+  "sealed_decisions": ["001", "002", "003", "004", "005", "006", "007", "008", "009", "010", "011"],
   "monetization": {
     "platform": "x-only",
     "streams": ["original-content-rewards", "affiliate-in-post", "creator-subscriptions", "x-money-tips"],
