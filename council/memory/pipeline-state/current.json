@@ -1,0 +1,11 @@
+{
+  "pipeline": "xcreator-pipeline",
+  "stage": "intel-only (gated: imagine/post/pay)",
+  "council_active": true,
+  "memory_backend": "Google Drive + GitHub mirror",
+  "last_council_run": "2026-09-01T21:47:00Z",
+  "cost_this_run_usd": 0.0,
+  "cap_usd": 0.50,
+  "agents_registered": ["grok-ara"],
+  "pending": ["wire-gemini", "wire-custom-agents", "n8n-ingest"]
+}
