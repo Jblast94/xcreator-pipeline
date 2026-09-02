@@ -1,0 +1,10 @@
+{
+  "id": "x-poster-gradio",
+  "role": "worker",
+  "type": "gradio-space",
+  "endpoint": "https://huggingface.co/spaces/Jblast94/x-poster-gradio",
+  "capabilities": ["research", "post", "state"],
+  "auth": "HF_TOKEN + X OAuth1.0a",
+  "status": "scaffold-pushed",
+  "decision": "010"
+}
