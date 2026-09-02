@@ -1,0 +1,9 @@
+{
+  "id": "gemini-council",
+  "role": "worker-agent",
+  "model": "Gemini",
+  "capabilities": ["reasoning", "multimodal", "long-context", "code-review"],
+  "status": "pending-wire",
+  "last_seen": null,
+  "notes": "Registered by council. Awaiting endpoint + auth. Will route through Grok god-layer only."
+}
