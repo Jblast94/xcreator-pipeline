@@ -1,0 +1,9 @@
+{
+  "id": "custom-relay-boxes",
+  "role": "worker-agent",
+  "model": "custom-homelab-relay",
+  "capabilities": ["cloud-to-home-pipeline", "peer-relay", "low-latency-ingest", "self-hosted"],
+  "status": "pending-wire",
+  "last_seen": null,
+  "notes": "User-built relay boxes tying cloud pipelines directly to home network. Council routes traffic through these. No SaaS middleman."
+}
